@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='com.human.springboot.MallDAO'>
+	<select id="m_select" resultType="com.human.springboot.SigninDTO">
+		select * from memberinfo
+	</select>
+	<insert id="m_insert">
+		insert into memberinfo(m_id, m_pw, m_birth, m_name, m_mail, m_mobile, m_address, m_create) values(#{param1},#{param2},#{param3},#{param4},#{param5},#{param6},#{param7},TO_CHAR(SYSDATE, 'YYYY/MM/DD')) 
+	</insert>
+	
+	<select id="m_id_find" resultType="int">
+		select count(*) from memberinfo where m_id=#{param1}
+	</select>
+	<select id="dologin" resultType="int">
+		select count(*) from memberinfo where m_id=#{param1} and m_pw=#{param2}
+	</select>
+	<!-- 아이디 찾기  --> 
+	<select id="find_id" resultType="int">
+		select count(*) from memberinfo where m_name=#{param1} and m_mail=#{param2}
+	</select>
+	<select id="find_id2" resultType="String">
+		select m_id from memberinfo where m_name=#{param1} and m_mail=#{param2}
+	</select>
+	<!-- 비밀번호 찾기  --> 
+	<select id="find_pw" resultType="int">
+		select count(*) from memberinfo where m_id=#{param1} and m_mail=#{param2} and m_name=#{param3}
+	</select>
+	<select id="find_pw2" resultType="String">
+		select m_pw from memberinfo where m_id=#{param1} and m_mail=#{param2} and m_name=#{param3}
+	</select>
+	
+	<!-- =====================마이페이지=============================== -->
+		<!-- 마이페이지 리뷰작성하기 -->
+	<select id="mypagereviewselect" resultType="com.human.springboot.mypageorderDTO">
+	select member_id, prod_id 
+	from prod_order
+	where order_num=#{param1}
+	</select>	
+	<update id="mypagereview_update">
+		update review 
+		set rev_title=#{param2}, rev_cont=#{param3}, rev_create=to_char(sysdate, 'yyyy/mm/dd'), rev_readcount=0,rev_check='Y'
+		where m_id=#{param1}
+		and order_num=#{param4}
+	</update>
+	
+	<!-- 마이페이지 내리뷰 -->
+	<select id="mypagereview" resultType="com.human.springboot.mypageReviewDTO">            
+	       select a.order_num, b.prod_name, a.order_date, c.rev_check
+	        from prod_order a, product b, review c
+	        where a.prod_id=b.prod_id
+	       and a.order_num=c.order_num
+	        and a.member_id=#{param1}
+	        order by a.order_num asc
+	</select>
+	
+	<!-- 마이페이지 주문/배송현황  -->
+	<select id="mypageorderlist" resultType="com.human.springboot.mypageorderDTO">
+	       	select a.order_num, a.order_date, a.order_price, b.prod_name
+	        from prod_order a, product b
+	        where a.prod_id=b.prod_id 
+	        and a.member_id=#{param1} 
+	        and a.order_date between #{param2} and #{param3}
+	        order by a.order_num
+	</select>
+	<select id="mypageorderlist1" resultType="com.human.springboot.mypageorderDTO">
+			select a.order_num, a.order_date, a.order_price, b.prod_name
+	        from prod_order a, product b
+	        where a.prod_id=b.prod_id 
+	        and a.member_id=#{param1} 
+	        order by a.order_num
+	</select>
+	<select id="ordertotal" resultType="int">
+			select count(*)
+	        from prod_order
+	        where member_id=#{param1} 
+	</select>
+	
+	<!-- 마이페이지 회원정보 수정 -->
+	<update id="mypageupdate">
+		update memberinfo
+		set m_mail=#{param2}, m_mobile=#{param3}, m_address=#{param4}
+		where m_id=#{param1}
+	</update>
+	
+	<!-- 마이페이지 회원정보 조회 -->
+		<select id="mypageselect" resultType="com.human.springboot.SigninDTO">
+			select m_name, m_id, m_birth, m_mail, m_mobile, m_address 
+			from memberinfo
+			where m_id=#{param1}
+		</select>
+	
+	
+	
+	<!-- 마이페이지 비밀번호 재확인 -->
+	<select id="pwdselect" resultType="String">
+		select m_pw from memberinfo where m_id=#{param1}
+	</select>	
+	
+	<!-- 리뷰게시판 리스트 -->
+	<select id="reviewlist" resultType="com.human.springboot.ReviewDTO">
+		select a.rev_seq, b.prod_name, a.rev_title, a.m_id, a.rev_create, a.rev_cont
+         from review a, product b 
+         where a.prod_id = b.prod_id
+         order by a.rev_seq asc
+	</select>
+	
+	
+	<!-- 리뷰게시판 상세보기 -->
+	<select id="detailview" resultType="com.human.springboot.ReviewDTO">
+		select a.rev_seq, b.prod_name, a.m_id, a.rev_title, a.rev_cont, a.rev_create, a.rev_update 
+		from review a, product b 
+		where rev_seq = #{param1} 
+		and a.prod_id = b.prod_id
+	</select>
+	
+	<!-- 리뷰 리스트 -->
+	<select id="updatelist" resultType="com.human.springboot.ReviewDTO">
+		select rev_seq, rev_title, rev_cont, m_id, prod_id
+		from review 
+		where rev_seq = #{param1}
+	</select>
+	<!-- 리뷰 수정 -->
+	<update id="detailupdate">
+		update review
+		set rev_title=#{param2}, rev_cont=#{param3}, rev_update=to_char(sysdate, 'YYYY/MM/DD')
+		where rev_seq=#{param1}
+	</update>
+	
+	<!-- 리뷰 조회수 -->
+	<update id="readcount">
+		update review  
+		set rev_readcount= rev_readcount+1  
+		where rev_seq= #{param1}
+	</update>
+	<delete id="detaildelete">
+		delete from review where rev_seq=#{param1}
+	</delete>
+	
+	
+	<!-- ================== 제품상세페이지 관련============================ -->
+	
+	<!-- 제품 상세보기 -->
+	<select id="load_detail" resultType="com.human.springboot.ProdDTO">
+		  select * from product where Prod_id=#{param1}
+	</select>
+	<select id="load_category" resultType="com.human.springboot.ProdDTO">
+		  select * from product where cat_id=#{param1} and color_id =10  order by prod_id
+	</select>
+	<select id="load_category_pc" resultType="com.human.springboot.ProdDTO">
+		  select * from product where cat_id=#{param1} and color_id between 10 and 20  order by prod_id
+	</select>
+
+	<!-- 상세페이지에 리뷰 select -->
+	<select id="review_select" resultType="com.human.springboot.ReviewDTO">
+		  select a.rev_seq, a.m_id, a.rev_create, a.prod_id, b.prod_name, a.rev_title, a.rev_cont, c.color
+		  from review a, product b, prod_color c
+		  where b.prod_id=a.prod_id 
+		  and b.prod_name=#{param1}
+		  and b.color_id=c.color_id
+		  and a.rev_check='Y'
+		  order by rev_seq desc
+	</select>
+	<select id="review_select_asc" resultType="com.human.springboot.ReviewDTO">
+		  select a.rev_seq, a.m_id, a.rev_create, a.prod_id, b.prod_name, a.rev_title, a.rev_cont, c.color
+		  from review a, product b, prod_color c
+		  where b.prod_id=a.prod_id 
+		  and b.prod_name=#{param1}
+		  and b.color_id=c.color_id
+		  and a.rev_check='Y'
+		  order by rev_seq asc
+	</select>
+
+	<!-- 색상 가져오기 -->
+	<select id="select_color" resultType="com.human.springboot.ProdDTO">
+		  select a.color_id, a.color, b.prod_id from prod_color a, product b where b.prod_name=#{param1} and a.color_id=b.color_id
+	</select>
+		<!-- 상세페이지에 현재 장바구니 목록 보여주기 -->
+	<select id="load_cart" resultType="com.human.springboot.ProdDTO">
+		select b.prod_name, b.prod_img, b.prod_id from cart a, product b
+		where a.m_id=#{param1}
+		and a.p_id=b.prod_id
+	</select>
+	
+	<!-- cartDB에 있는지 확인하기 -->
+	<select id="cart_confirm" resultType="int">
+		select count(*) from cart where p_id=#{param1} and m_id=#{param2}
+	</select>
+	
+	<!-- 장바구니 select list -->
+	<select id="cart_select" resultType="com.human.springboot.CartDTO">
+		  select * from cart
+	</select>
+	<!-- 장바구니 insert -->
+	<insert id="cart_insert">
+		insert into cart(cart_id, p_id, cart_qty, m_id) values(cart_id.nextval, #{param1}, #{param2}, #{param3}) 
+	</insert>
+		
+	<!-- order DB에 넣기 -->
+	<insert id="person_insert">
+		insert into prod_order (order_num, member_id, order_price, product_qty,prod_id,order_date, cart_id) 
+		values(order_num.nextval,#{param1},#{param2},#{param3},#{param4},TO_CHAR(SYSDATE, 'YYYY/MM/DD'), #{param5}) 
+	</insert>
+	<!-- ordernum 구해오기 -->
+	<select id="order_num" resultType="String">
+		select order_num from prod_order
+		where member_id = #{param1}
+		and order_price = #{param2}
+		and product_qty = #{param3}
+		and prod_id = #{param4}
+		and cart_id = #{param5}
+	</select>
+		<!-- 주문 시에 리뷰 rev_check에 N넣기 -->
+	<insert id="order_review">
+		insert into review (rev_seq, m_id, prod_id, rev_check, order_num, rev_update) values (revseq.nextval, #{param1}, #{param2}, 'N', #{param3}, '-')
+	</insert>
+	<!-- 주문 후 장바구니 삭제 -->
+	<delete id="order_cart_delete">
+		delete from cart where cart_id=#{param1}
+	</delete>
+	
+	
+	<!-- 지은님 컴퓨터 -->	
+	<delete id="cart_delete">
+		delete from cart where cart_id=#{param1}
+	</delete>
+	
+	<!-- 장바구니에서 결제창으로 -->
+	<select id="payorder_list" resultType="com.human.springboot.BDTO">
+		select a.cart_id, a.cart_qty, a.m_id, c.color, b.prod_name, b.prod_price, b.prod_img, b.prod_id
+			from cart a, product b, prod_color c
+				where a.cart_id=#{param1} and a.p_id=b.prod_id and b.color_id=c.color_id
+				order by a.cart_id
+	</select>
+	<!-- detail에서 결제창으로 -->
+	<select id="payorder_list2" resultType="com.human.springboot.BDTO">
+		select a.prod_img, a.prod_name, a.prod_price, a.prod_id, b.color, c.cart_id, c.m_id
+			from product a, prod_color b, cart c
+				where a.prod_id=#{param2} and c.m_id=#{param1}
+				and a.color_id=b.color_id
+				and a.prod_id=c.p_id
+				order by a.prod_id
+	</select>
+	<!-- 비회원 장바구니에서 결제창으로 -->
+	<select id="payorder_list3" resultType="com.human.springboot.BDTO">
+		select a.cart_id, a.cart_qty, a.m_id, b.prod_name, b.prod_price, b.prod_img, b.prod_id, c.color
+         	from cart a, product b, prod_color c
+            where a.p_id=#{param1} and a.m_id=#{param2} and b.color_id=c.color_id and a.p_id=b.prod_id
+            order by a.cart_id
+	</select>
+	<select id="payorder_basket_list" resultType="com.human.springboot.BDTO">
+	select a.cart_id, a.cart_qty, a.m_id, c.color, b.prod_name, b.prod_price, b.prod_img
+		from cart a, product b, prod_color c
+			where a.m_id = #{param1}
+			and a.p_id=b.prod_id
+            and b.color_id=c.color_id
+			order by a.cart_id
+	</select>
+	<select id="result_mainList" resultType="com.human.springboot.OrderDTO">
+		select member_id, order_num,order_date,product_qty from prod_order where member_id=#{param1} order by order_num desc
+	</select>
+	<delete id="order_delete">
+		delete from cart where cart_id=#{param1}
+	</delete>
+	<select id="payorder_admin_list" resultType="com.human.springboot.PDTO">
+		select m_name, m_mobile,m_mail,m_address from memberinfo
+	</select>
+	<insert id="order_page_insert">
+		insert into product values(prod_id)
+	</insert>
+	<select id="pay_member" resultType="com.human.springboot.PDTO">
+		select m_name,m_id,m_mobile,m_mail,m_address from memberinfo where m_id = #{param1}
+	</select>
+	
+	<!-- 제품 상세보기 -->
+	<select id="prod_select" resultType="com.human.springboot.ProdDTO">
+		select * from product where prod_id=#{param1}
+	</select>
+	
+<!-- 	관리자 페이지 상품정렬(페이지네이션) -->
+	<!-- 낮은가격순 -->
+	<select id="select_price" resultType="com.human.springboot.ProdDTO">
+		select prod_id, prod_name, prod_price, cat_id, prod_info, prod_tag, color, prod_img
+        from product a, prod_color b
+        where a.color_id between 10 and 20
+        and a.color_id = b.color_id
+        order by prod_price
+	</select>
+	<!-- 높은가격순 -->
+	<select id="select_price_high" resultType="com.human.springboot.ProdDTO">
+		select prod_id, prod_name, prod_price, cat_id, prod_info, prod_tag, color, prod_img
+        from product a, prod_color b
+        where a.color_id between 10 and 20
+        and a.color_id = b.color_id
+        order by prod_price desc
+	</select>
+	
+	<!-- 관리자 페이지 -> 상품목록 관리 페이지로(admin_prod) -->
+	<select id="admin_prod_all" resultType="com.human.springboot.ProdDTO">
+		select prod_id, prod_name, prod_price, cat_id, prod_info, prod_tag, color, prod_img
+        from product a, prod_color b
+        where a.color_id between 10 and 20
+        and a.color_id = b.color_id
+        order by prod_id
+	</select>
+	<select id="admin_prod_count" resultType="int">
+		SELECT COUNT(DISTINCT prod_name) AS total_count FROM product
+	</select>
+	<select id="admin_prod" resultType="com.human.springboot.ProdDTO">
+		select prod_id, prod_name, prod_price, cat_id, prod_info, prod_tag, color_id, prod_img, prod_cont
+        from product
+  		where prod_id=#{param1}
+	</select>
+	<!-- 제품 추가 -->
+	<insert id="prod_insert">
+		insert into product (prod_id, prod_name, prod_price, cat_id, prod_info, prod_tag, color_id)
+	    	values(prod_id.nextval,#{param1},#{param2},#{param3},#{param4},#{param5},#{param6})
+	</insert>
+	
+	<update id="newUrl">
+      update product set prod_img=#{param1} where prod_name=#{param2}
+   </update>
+   <update id="newUrlC">
+      update product set prod_cont=#{param1} where prod_name=#{param2}
+   </update> 
+	
+	<!-- 제품 수정하기 -->
+	<update id="prod_update">
+		update product set
+		prod_name = #{param2}, prod_price = #{param3}, cat_id = #{param4},
+		prod_info = #{param5}, prod_cont = #{param6}, prod_tag = #{param7},
+		prod_img = #{param8}, color_id = #{param9}
+		where prod_id=#{param1}
+	</update>
+	<!-- 제품 삭제하기 -->
+	<delete id="prod_delete">
+		delete from product where prod_id=#{param1}
+	</delete>
+	
+	<!-- 관리자 페이지 -> 회원목록 관리 페이지로(admin_member) -->
+	<select id="admin_member_all" resultType="com.human.springboot.SigninDTO">
+		select m_id, m_name, m_mobile, m_address, m_birth, m_mail, m_create
+        from memberinfo order by m_create
+	</select>
+	<select id="admin_member_count" resultType="int">
+		SELECT COUNT(*) FROM memberinfo
+	</select>
+	<!-- 관리자 페이지 -> 주문목록 관리 페이지로(admin_order) -->
+   <select id="admin_order_all" resultType="com.human.springboot.OrderDTO">
+      select a.order_num, a.order_date, a.order_price, a.member_id, a.product_qty, b.prod_name, a.cart_id
+        from prod_order a, product b
+        where a.prod_id = b.prod_id
+        order by order_num      
+   </select>
+   <!-- 관리자 페이지 -> 리뷰목록 관리 페이지로(admin_reveiw) -->
+   <select id="admin_review_all" resultType="com.human.springboot.ReviewDTO">
+        select a.rev_seq, a.m_id, a.rev_title, a.rev_cont, a.rev_create, a.rev_update, b.prod_name
+      from review a, product b
+      where a.prod_id = b.prod_id
+      and a.rev_check='Y'
+      order by rev_seq
+   </select>
+	
+	
+	<!-- 관리자 페이지 main -->
+	<!-- 관리자 리뷰관리 -->
+	<select id="admin_review" resultType="com.human.springboot.ReviewDTO">
+		select rev_seq, m_id, rev_title, rev_cont from review where rev_check='Y' order by rev_seq desc
+	</select>
+	<!-- 	관리자 회원관리 -->
+	<select id="admin_member" resultType="com.human.springboot.PDTO">
+		select m_id,m_name,m_mobile,m_address from memberinfo order by m_id desc
+	</select>
+	<!-- 	관리자 주문관리 -->
+	<select id="admin_order" resultType="com.human.springboot.OrderDTO">
+		select order_num,member_id,prod_id,product_qty,order_price from prod_order order by order_num desc
+	</select>
+	<!-- 	관리자 상품관리 -->
+	<select id="admin_product" resultType="com.human.springboot.ProdDTO">
+		select prod_id,prod_name,prod_price,prod_info from product order by prod_id desc
+	</select>
+	
+	<!-- main 페이지에 review 가져오기  -->
+	<select id="load_review" resultType="com.human.springboot.ReviewDTO">
+		select b.prod_name, a.rev_cont, a.rev_seq, b.prod_img from review a, product b
+		where a.rev_check='Y'
+		and a.prod_id=b.prod_id
+		order by rev_create desc
+	</select>
+	<!-- main 페이지에 MD 추천 상품 가져오기  -->
+	<select id="load_product" resultType="com.human.springboot.ProdDTO">
+		select prod_name, prod_tag, prod_img, prod_id from product
+		order by dbms_random.random()
+	</select>
+</mapper>
